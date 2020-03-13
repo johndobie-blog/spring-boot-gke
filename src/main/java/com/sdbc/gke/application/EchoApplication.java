@@ -30,7 +30,7 @@ public class EchoApplication {
     public EchoApplication() {
         super();
         try {
-            ipAddress = InetAddress.getLocalHost().getHostAddress();
+            ipAddress = "Host[" + InetAddress.getLocalHost().getHostAddress() + "]";
         } catch (Exception e) {
             throw new RuntimeException("Could not get local address");
         }
@@ -38,7 +38,7 @@ public class EchoApplication {
 
     @GetMapping("/echo")
     public String echo(@RequestParam String message, HttpServletRequest request) {
-        return ipAddress + ":" + message;
+        return ipAddress + " : " + message;
     }
 
     @Bean

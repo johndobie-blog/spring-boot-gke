@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: echo-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: echo-deployment
+        track: canary
+        version: 2.0.0
+    spec:
+      containers:
+        - name: echo
+          image: gcr.io/spring-boot-kubernetes-echo/echo:v2
+          ports:
+            - name: http
+              containerPort: 80

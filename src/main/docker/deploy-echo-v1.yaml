@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: echo-deployment
+spec:
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: echo-deployment
+        track: stable
+        version: 1.0.0
+    spec:
+      containers:
+        - name: echo
+          image: gcr.io/spring-boot-kubernetes-echo/echo:v1
+          ports:
+            - name: http
+              containerPort: 80

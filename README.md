@@ -43,6 +43,8 @@ gcloud config set project spring-boot-kubernetes-echo
 
 export PROJECT_ID=”$(gcloud config get-value project -q)”
 
+playground-s-11-70e594
+
 gcloud projects list
 gcloud beta billing projects link spring-boot-kubernetes-echo --billing-account 003146-4D6988-3DC95C
 ```
@@ -51,8 +53,20 @@ gcloud beta billing projects link spring-boot-kubernetes-echo --billing-account 
 ``` 
 gcloud services enable containerregistry.googleapis.com
 
-docker build -t gcr.io/spring-boot-kubernetes-echo/echo .
-docker push gcr.io/spring-boot-kubernetes-echo/echo
+
+docker build -t echo-container-image .
+docker tag echo-container-image gcr.io/spring-boot-kubernetes-echo/echo:v1
+docker push gcr.io/spring-boot-kubernetes-echo/echo:v1
+
+docker tag echo-container-image gcr.io/playground-s-11-70e594/echo:v1
+docker push gcr.io/playground-s-11-70e594/echo:v1
+
+
+
+docker build -t la-container-image .
+gcloud auth configure-docker
+docker tag la-container-image gcr.io/<PROJECT_ID>/la-container-image:v1
+docker push gcr.io/<PROJECT_ID>/la-container-image:v1
 ```
 
 #### Create the kubernetes cluster
@@ -60,11 +74,21 @@ docker push gcr.io/spring-boot-kubernetes-echo/echo
 gcloud services enable compute.googleapis.com container.googleapis.com
 
 gcloud container clusters create echo-kubernetes-cluster \
-  --num-nodes 2 \
+  --num-nodes 4 \
   --machine-type n1-standard-1 \
   --zone us-central1-c
-   
-kubectl create deployment echo-deployment --image=gcr.io/spring-boot-kubernetes-echo/echo:latest
+```
+
+#### Deploy the application
+
+
+kubectl create -f deploy-stable.yaml
+
+kubectl apply -f deploy-echo-v1.yaml
+
+```   
+kubectl create deployment echo-deployment --image=gcr.io/spring-boot-kubernetes-echo/echo:v1
+kubectl create deployment echo-deployment --image=gcr.io/playground-s-11-70e594/echo:v1
 kubectl get deployments 
 kubectl get pods
 ```
@@ -82,11 +106,19 @@ Use the external address to access the service http://35.222.75.46/echo?message=
 
 #### Scale the pods up or down
 ```
-kubectl scale deployment image --replicas=2
+kubectl scale deployment echo-deployment --replicas=3
 kubectl get pods
-kubectl scale deployment image --replicas=1
+kubectl scale deployment echo-deployment --replicas=1
 kubectl get pods
 ```
+
+#### Create a second version of the application
+docker build -t gcr.io/spring-boot-kubernetes-echo/echo:v2 .
+docker push gcr.io/spring-boot-kubernetes-echo/echo:v2
+
+kubectl set image deployment/hello-java hello-java=gcr.io/$GOOGLE_CLOUD_PROJECT/hello-java:v2
+
+kubectl set image deployment/echo-deployment echo=gcr.io/spring-boot-kubernetes-echo/echo:v2
 
 ##### Tear Down.
 ```
